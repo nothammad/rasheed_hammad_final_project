@@ -4,18 +4,28 @@
 {% block content %}
 <h2 class="mb-4">Dashboard</h2>
 
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-white bg-primary">
+<!-- Summary Row: Total + Chart -->
+<div class="row mb-5">
+    <!-- Total Spent Card -->
+    <div class="col-md-6">
+        <div class="card text-white bg-primary shadow">
             <div class="card-body">
                 <h5 class="card-title">Total Spent</h5>
-                <p class="card-text fs-4">${{ total_spent }}</p>
+                <p class="card-text fs-3">${{ total_spent }}</p>
             </div>
+        </div>
+    </div>
+
+    <!-- Pie Chart Card -->
+    <div class="col-md-6 d-flex align-items-center justify-content-center">
+        <div style="max-width: 250px; max-height: 250px;">
+            <canvas id="expenseChart" width="250" height="250"></canvas>
         </div>
     </div>
 </div>
 
-<h4 class="mt-5">Spending by Category</h4>
+<!-- Spending by Category Table -->
+<h4>Spending by Category</h4>
 <table class="table table-bordered mt-3">
     <thead class="table-light">
         <tr>
@@ -27,7 +37,7 @@
         {% for item in category_summary %}
         <tr>
             <td>{{ item.category__name }}</td>
-            <td>${{ item.total }}</td>
+            <td>${{ item.total|floatformat:2 }}</td>
         </tr>
         {% empty %}
         <tr><td colspan="2">No data available.</td></tr>
@@ -35,7 +45,8 @@
     </tbody>
 </table>
 
-<h4 class="mt-5">Budgets</h4>
+<!-- Budget Table -->
+<h4 class="mt-5">Active Budgets</h4>
 <table class="table table-striped mt-3">
     <thead>
         <tr>
@@ -58,4 +69,40 @@
         {% endfor %}
     </tbody>
 </table>
+
+<!-- Chart.js Script -->
+{% autoescape off %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('expenseChart').getContext('2d');
+  const expenseChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: {{ chart_labels|safe }},
+      datasets: [{
+        label: 'Spending by Category',
+        data: {{ chart_data|safe }},
+        backgroundColor: [
+          '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+          '#9966FF', '#FF9F40', '#66BB6A', '#EF5350',
+          '#BA68C8', '#FFA726'
+        ],
+        borderColor: '#ffffff',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            boxWidth: 12
+          }
+        }
+      }
+    }
+  });
+</script>
+{% endautoescape %}
 {% endblock %}

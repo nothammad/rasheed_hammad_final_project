@@ -4,6 +4,8 @@ from django.urls import reverse_lazy
 from .models import Expense, Category, Budget, RecurringExpense
 from django.db.models import Sum
 from django.shortcuts import render, redirect
+from django.utils.safestring import mark_safe
+import json
 
 
 
@@ -15,6 +17,7 @@ def dashboard_view(request):
     budgets = Budget.objects.filter(user=user)
 
     total_spent = expenses.aggregate(total=Sum('amount'))['total'] or 0
+    total_spent = round(float(total_spent),2)
 
     category_summary = (
         expenses.values('category__name')
@@ -22,10 +25,15 @@ def dashboard_view(request):
         .order_by('-total')
     )
 
+    chart_labels = [item['category__name'] or 'Uncategorized' for item in category_summary]
+    chart_data = [round(float(item['total']),2) for item in category_summary]
+
     context = {
-        'total_spent': total_spent,
+        'total_spent': round(total_spent,2),
         'category_summary': category_summary,
         'budgets': budgets,
+        'chart_labels': mark_safe(json.dumps(chart_labels)),
+        'chart_data': mark_safe(json.dumps(chart_data)),
     }
     return render(request, 'tracker/dashboard.html', context)
 
