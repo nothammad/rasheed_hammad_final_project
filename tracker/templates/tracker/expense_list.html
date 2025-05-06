@@ -1,13 +1,41 @@
 {% extends "tracker/base.html" %}
+{% block title %}My Expenses{% endblock %}
+
 {% block content %}
-<h2>Your Expenses</h2>
-<a href="{% url 'expense-add' %}">+ Add New Expense</a>
-<ul>
-    {% for expense in expenses %}
-        <li>${{ expense.amount }} - {{ expense.category }} - {{ expense.date }}
-            (<a href="{% url 'expense-edit' expense.pk %}">Edit</a> |
-             <a href="{% url 'expense-delete' expense.pk %}">Delete</a>)
-        </li>
-    {% endfor %}
-</ul>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Your Expenses</h2>
+    <a href="{% url 'expense-create' %}" class="btn btn-primary">+ Add Expense</a>
+</div>
+
+<form method="get" class="mb-3">
+    <input type="text" name="category" class="form-control" placeholder="Filter by category name..." value="{{ request.GET.category }}">
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Description</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for expense in expenses %}
+        <tr>
+            <td>{{ expense.date }}</td>
+            <td>{{ expense.category.name }}</td>
+            <td>${{ expense.amount }}</td>
+            <td>{{ expense.description }}</td>
+            <td>
+                <a href="{% url 'expense-update' expense.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+                <a href="{% url 'expense-delete' expense.pk %}" class="btn btn-sm btn-danger">Delete</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No expenses found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

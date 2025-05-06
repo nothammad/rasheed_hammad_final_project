@@ -1,5 +1,61 @@
 {% extends "tracker/base.html" %}
+{% block title %}Dashboard{% endblock %}
+
 {% block content %}
-<h1>Welcome, {{ user.username }}!</h1>
-<p>This is your personal dashboard.</p>
+<h2 class="mb-4">Dashboard</h2>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Total Spent</h5>
+                <p class="card-text fs-4">${{ total_spent }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4 class="mt-5">Spending by Category</h4>
+<table class="table table-bordered mt-3">
+    <thead class="table-light">
+        <tr>
+            <th>Category</th>
+            <th>Total Spent</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in category_summary %}
+        <tr>
+            <td>{{ item.category__name }}</td>
+            <td>${{ item.total }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2">No data available.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h4 class="mt-5">Budgets</h4>
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Limit</th>
+            <th>Start</th>
+            <th>End</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for budget in budgets %}
+        <tr>
+            <td>{{ budget.category.name }}</td>
+            <td>${{ budget.amount_limit }}</td>
+            <td>{{ budget.start_date }}</td>
+            <td>{{ budget.end_date }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No active budgets.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}
