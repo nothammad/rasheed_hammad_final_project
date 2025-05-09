@@ -3,7 +3,6 @@ from .models import (
     Expense, Category, Budget, RecurringExpense,
     TransactionLog, SavingsGoal, Notification, Profile, Tag
 )
-import pytz
 
 class ExpenseForm(forms.ModelForm):
     class Meta:
@@ -78,13 +77,23 @@ class SavingsGoalForm(forms.ModelForm):
 
 
 class ProfileForm(forms.ModelForm):
-    TIMEZONE_CHOICES = [(tz, tz) for tz in pytz.common_timezones]
+    TIMEZONE_CHOICES = [
+        ('UTC', 'UTC'),
+        ('US/Eastern', 'US/Eastern'),
+        ('US/Central', 'US/Central'),
+        ('US/Mountain', 'US/Mountain'),
+        ('US/Pacific', 'US/Pacific'),
+        ('Europe/London', 'Europe/London'),
+        ('Asia/Kolkata', 'Asia/Kolkata'),
+        ('Asia/Tokyo', 'Asia/Tokyo'),
+        ('Australia/Sydney', 'Australia/Sydney'),
+    ]
+
     timezone = forms.ChoiceField(choices=TIMEZONE_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Profile
         fields = ['timezone']
-
 
 class TagForm(forms.ModelForm):
     class Meta:
