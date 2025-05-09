@@ -1,23 +1,28 @@
 from django import forms
 from .models import (
-    Expense, Category, Budget, RecurringExpense, 
+    Expense, Category, Budget, RecurringExpense,
     TransactionLog, SavingsGoal, Notification, Profile, Tag
 )
-from .models import Profile
 import pytz
 
-# ----- EXPENSE FORM -----
 class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
-        fields = ['category', 'amount', 'date', 'description','tags']
+        fields = ['category', 'amount', 'date', 'description', 'tags']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'tags': forms.CheckboxSelectMultiple(),
         }
 
-# ----- CATEGORY FORM -----
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+        self.fields['category'].queryset = Category.objects.filter(user=user)
+        self.fields['tags'].queryset = Tag.objects.filter(user=user)
+
+
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
@@ -26,7 +31,7 @@ class CategoryForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-# ----- BUDGET FORM -----
+
 class BudgetForm(forms.ModelForm):
     class Meta:
         model = Budget
@@ -37,7 +42,12 @@ class BudgetForm(forms.ModelForm):
             'amount_limit': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
-# ----- RECURRING EXPENSE FORM -----
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+        self.fields['category'].queryset = Category.objects.filter(user=user)
+
+
 class RecurringExpenseForm(forms.ModelForm):
     class Meta:
         model = RecurringExpense
@@ -49,7 +59,12 @@ class RecurringExpenseForm(forms.ModelForm):
             'frequency': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-# ----- SAVINGS GOAL FORM -----
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+        self.fields['category'].queryset = Category.objects.filter(user=user)
+
+
 class SavingsGoalForm(forms.ModelForm):
     class Meta:
         model = SavingsGoal
@@ -61,17 +76,16 @@ class SavingsGoalForm(forms.ModelForm):
             'notes': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
         }
 
-# ----- PROFILE FORM -----
+
 class ProfileForm(forms.ModelForm):
     TIMEZONE_CHOICES = [(tz, tz) for tz in pytz.common_timezones]
-
     timezone = forms.ChoiceField(choices=TIMEZONE_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Profile
         fields = ['timezone']
 
-# ----- TAG FORM -----
+
 class TagForm(forms.ModelForm):
     class Meta:
         model = Tag

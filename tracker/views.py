@@ -11,7 +11,6 @@ from .forms import ProfileForm, ExpenseForm
 
 
 
-# ---------- EXPENSE VIEWS ----------
 
 @login_required
 def dashboard_view(request):
@@ -59,6 +58,11 @@ class ExpenseCreateView(LoginRequiredMixin, CreateView):
     form_class = ExpenseForm
     template_name = 'tracker/expense_form.html'
     success_url = reverse_lazy('expense-list')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -117,7 +121,6 @@ class ExpenseDeleteView(LoginRequiredMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
-# ---------- CATEGORY VIEWS ----------
 
 class CategoryListView(LoginRequiredMixin, ListView):
     model = Category
@@ -158,7 +161,6 @@ class CategoryDeleteView(LoginRequiredMixin, DeleteView):
         return Category.objects.filter(user=self.request.user)
 
 
-# ---------- BUDGET VIEWS ----------
 
 class BudgetListView(LoginRequiredMixin, ListView):
     model = Budget
@@ -199,7 +201,6 @@ class BudgetDeleteView(LoginRequiredMixin, DeleteView):
         return Budget.objects.filter(user=self.request.user)
 
 
-# ---------- RECURRING EXPENSE VIEWS ----------
 
 class RecurringExpenseListView(LoginRequiredMixin, ListView):
     model = RecurringExpense
@@ -239,7 +240,6 @@ class RecurringExpenseDeleteView(LoginRequiredMixin, DeleteView):
     def get_queryset(self):
         return RecurringExpense.objects.filter(user=self.request.user)
 
-# ---------- SAVINGS GOAL VIEWS ----------
 class SavingsGoalListView(LoginRequiredMixin, ListView):
     model = SavingsGoal
     template_name = 'tracker/savingsgoal_list.html'
@@ -279,7 +279,6 @@ class SavingsGoalDeleteView(LoginRequiredMixin, DeleteView):
         return SavingsGoal.objects.filter(user=self.request.user)
 
 
-# ---------- TRANSACTION LOG VIEWS ----------
 class TransactionLogListView(LoginRequiredMixin, ListView):
     model = TransactionLog
     template_name = 'tracker/transactionlog_list.html'
@@ -289,7 +288,6 @@ class TransactionLogListView(LoginRequiredMixin, ListView):
         return TransactionLog.objects.filter(user=self.request.user).order_by('-action_time')
 
 
-# ---------- NOTIFICATION VIEWS ----------
 class NotificationListView(LoginRequiredMixin, ListView):
     model = Notification
     template_name = 'tracker/notification_list.html'
@@ -308,7 +306,6 @@ class NotificationDeleteView(LoginRequiredMixin, DeleteView):
         return Notification.objects.filter(user=self.request.user)
 
 
-# ---------- PROFILE VIEWS ----------
 class ProfileView(LoginRequiredMixin, ListView):
     model = Profile
     template_name = 'tracker/profile_view.html'
@@ -337,7 +334,6 @@ class ProfileDeleteView(LoginRequiredMixin, DeleteView):
         return Profile.objects.filter(user=self.request.user)
 
 
-# ---------- TAG VIEWS ----------
 class TagListView(LoginRequiredMixin, ListView):
     model = Tag
     template_name = 'tracker/tag_list.html'
@@ -377,7 +373,6 @@ class TagDeleteView(LoginRequiredMixin, DeleteView):
         return Tag.objects.filter(user=self.request.user)
 
 
-# ---------- STATIC PAGES ----------
 class StaticAboutView(TemplateView):
     template_name = 'tracker/about.html'
 

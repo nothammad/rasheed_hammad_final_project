@@ -1,6 +1,6 @@
 # Tracker - Personal Finance Tracking Web Application
 
-## 1. Environmnet
+## 1. Environment
 
 This project was developed using the standard course environment.
 

@@ -2,7 +2,6 @@
 {% block title %}Add/Edit Expense{% endblock %}
 
 {% block extra_css %}
-<!-- Optional: Select2 for better tag selector styling -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 {% endblock %}
 
@@ -45,7 +44,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Optional: Select2 script -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -58,7 +56,6 @@
             });
         }
 
-        // Add Bootstrap form-control to inputs
         document.querySelectorAll('input, textarea, select').forEach(el => {
             if (!el.classList.contains('form-control') && !el.classList.contains('form-select')) {
                 el.classList.add(el.tagName === 'SELECT' ? 'form-select' : 'form-control');

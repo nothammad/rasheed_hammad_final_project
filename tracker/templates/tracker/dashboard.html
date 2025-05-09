@@ -4,9 +4,7 @@
 {% block content %}
 <h2 class="mb-4">Dashboard</h2>
 
-<!-- Summary Row: Total + Chart -->
 <div class="row mb-5">
-    <!-- Total Spent Card -->
     <div class="col-md-6">
         <div class="card text-white bg-primary shadow">
             <div class="card-body">
@@ -16,7 +14,6 @@
         </div>
     </div>
 
-    <!-- Pie Chart Card -->
     <div class="col-md-6 d-flex align-items-center justify-content-center">
         <div style="max-width: 250px; max-height: 250px;">
             <canvas id="expenseChart" width="250" height="250"></canvas>
@@ -24,7 +21,6 @@
     </div>
 </div>
 
-<!-- Spending by Category Table -->
 <h4>Spending by Category</h4>
 <table class="table table-bordered mt-3">
     <thead class="table-light">
@@ -45,7 +41,6 @@
     </tbody>
 </table>
 
-<!-- Budget Table -->
 <h4 class="mt-5">Active Budgets</h4>
 <table class="table table-striped mt-3">
     <thead>
@@ -70,7 +65,6 @@
     </tbody>
 </table>
 
-<!-- Chart.js Script -->
 {% autoescape off %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
