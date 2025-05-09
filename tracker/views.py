@@ -1,16 +1,19 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
 from django.urls import reverse_lazy
-from .models import Expense, Category, Budget, RecurringExpense
 from django.db.models import Sum
 from django.shortcuts import render, redirect
 from django.utils.safestring import mark_safe
+from django.contrib.auth.decorators import login_required
 import json
+from .models import Expense, Category, Budget, RecurringExpense, TransactionLog, SavingsGoal, Notification, Profile, Tag
+from .forms import ProfileForm, ExpenseForm
 
 
 
 # ---------- EXPENSE VIEWS ----------
 
+@login_required
 def dashboard_view(request):
     user = request.user
     expenses = Expense.objects.filter(user=user)
@@ -50,15 +53,39 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         return queryset.order_by('-date')
 
 
+
 class ExpenseCreateView(LoginRequiredMixin, CreateView):
     model = Expense
-    fields = ['category', 'amount', 'date', 'description']
+    form_class = ExpenseForm
     template_name = 'tracker/expense_form.html'
     success_url = reverse_lazy('expense-list')
 
     def form_valid(self, form):
         form.instance.user = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+
+        category = form.instance.category
+        amount = form.instance.amount
+
+        if category:
+            budgets = Budget.objects.filter(user=self.request.user, category=category)
+            for budget in budgets:
+                spent = Expense.objects.filter(
+                    user=self.request.user,
+                    category=category,
+                    date__range=[budget.start_date, budget.end_date]
+                ).aggregate(total=Sum('amount'))['total'] or 0
+
+                total_after = spent + amount
+                if total_after > budget.amount_limit:
+                    Notification.objects.create(
+                        user=self.request.user,
+                        message=f"You exceeded your budget for {category.name}. Limit: ${budget.amount_limit}, Spent: ${round(total_after, 2)}"
+                    )
+                    break
+                  
+        TransactionLog.objects.create(user=self.request.user, expense=self.object, action_type='created')
+        return response
 
 
 class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
@@ -70,6 +97,11 @@ class ExpenseUpdateView(LoginRequiredMixin, UpdateView):
     def get_queryset(self):
         return Expense.objects.filter(user=self.request.user)
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        TransactionLog.objects.create(user=self.request.user, expense=self.object, action_type='updated')
+        return response
+
 
 class ExpenseDeleteView(LoginRequiredMixin, DeleteView):
     model = Expense
@@ -78,6 +110,11 @@ class ExpenseDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return Expense.objects.filter(user=self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        TransactionLog.objects.create(user=self.request.user, expense=self.object, action_type='deleted')
+        return super().delete(request, *args, **kwargs)
 
 
 # ---------- CATEGORY VIEWS ----------
@@ -201,3 +238,152 @@ class RecurringExpenseDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return RecurringExpense.objects.filter(user=self.request.user)
+
+# ---------- SAVINGS GOAL VIEWS ----------
+class SavingsGoalListView(LoginRequiredMixin, ListView):
+    model = SavingsGoal
+    template_name = 'tracker/savingsgoal_list.html'
+    context_object_name = 'goals'
+
+    def get_queryset(self):
+        return SavingsGoal.objects.filter(user=self.request.user)
+
+
+class SavingsGoalCreateView(LoginRequiredMixin, CreateView):
+    model = SavingsGoal
+    fields = ['name', 'target_amount', 'deadline', 'notes']
+    template_name = 'tracker/savingsgoal_form.html'
+    success_url = reverse_lazy('goal-list')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+
+class SavingsGoalUpdateView(LoginRequiredMixin, UpdateView):
+    model = SavingsGoal
+    fields = ['name', 'target_amount', 'deadline', 'notes']
+    template_name = 'tracker/savingsgoal_form.html'
+    success_url = reverse_lazy('goal-list')
+
+    def get_queryset(self):
+        return SavingsGoal.objects.filter(user=self.request.user)
+
+
+class SavingsGoalDeleteView(LoginRequiredMixin, DeleteView):
+    model = SavingsGoal
+    template_name = 'tracker/savingsgoal_confirm_delete.html'
+    success_url = reverse_lazy('goal-list')
+
+    def get_queryset(self):
+        return SavingsGoal.objects.filter(user=self.request.user)
+
+
+# ---------- TRANSACTION LOG VIEWS ----------
+class TransactionLogListView(LoginRequiredMixin, ListView):
+    model = TransactionLog
+    template_name = 'tracker/transactionlog_list.html'
+    context_object_name = 'logs'
+
+    def get_queryset(self):
+        return TransactionLog.objects.filter(user=self.request.user).order_by('-action_time')
+
+
+# ---------- NOTIFICATION VIEWS ----------
+class NotificationListView(LoginRequiredMixin, ListView):
+    model = Notification
+    template_name = 'tracker/notification_list.html'
+    context_object_name = 'notifications'
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
+
+
+class NotificationDeleteView(LoginRequiredMixin, DeleteView):
+    model = Notification
+    template_name = 'tracker/notification_confirm_delete.html'
+    success_url = reverse_lazy('notification-list')
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
+
+
+# ---------- PROFILE VIEWS ----------
+class ProfileView(LoginRequiredMixin, ListView):
+    model = Profile
+    template_name = 'tracker/profile_view.html'
+    context_object_name = 'profile'
+
+    def get_queryset(self):
+        return Profile.objects.filter(user=self.request.user)
+
+
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    model = Profile
+    form_class = ProfileForm
+    template_name = 'tracker/profile_form.html'
+    success_url = reverse_lazy('profile-view')
+
+    def get_object(self):
+        return Profile.objects.get(user=self.request.user)
+
+
+class ProfileDeleteView(LoginRequiredMixin, DeleteView):
+    model = Profile
+    template_name = 'tracker/profile_confirm_delete.html'
+    success_url = reverse_lazy('profile-view')
+
+    def get_queryset(self):
+        return Profile.objects.filter(user=self.request.user)
+
+
+# ---------- TAG VIEWS ----------
+class TagListView(LoginRequiredMixin, ListView):
+    model = Tag
+    template_name = 'tracker/tag_list.html'
+    context_object_name = 'tags'
+
+    def get_queryset(self):
+        return Tag.objects.filter(user=self.request.user)
+
+
+class TagCreateView(LoginRequiredMixin, CreateView):
+    model = Tag
+    fields = ['name']
+    template_name = 'tracker/tag_form.html'
+    success_url = reverse_lazy('tag-list')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+
+class TagUpdateView(LoginRequiredMixin, UpdateView):
+    model = Tag
+    fields = ['name']
+    template_name = 'tracker/tag_form.html'
+    success_url = reverse_lazy('tag-list')
+
+    def get_queryset(self):
+        return Tag.objects.filter(user=self.request.user)
+
+
+class TagDeleteView(LoginRequiredMixin, DeleteView):
+    model = Tag
+    template_name = 'tracker/tag_confirm_delete.html'
+    success_url = reverse_lazy('tag-list')
+
+    def get_queryset(self):
+        return Tag.objects.filter(user=self.request.user)
+
+
+# ---------- STATIC PAGES ----------
+class StaticAboutView(TemplateView):
+    template_name = 'tracker/about.html'
+
+
+class StaticHelpView(TemplateView):
+    template_name = 'tracker/help.html'
+
+class StaticFeedbackView(TemplateView):
+    template_name = 'tracker/feedback.html'

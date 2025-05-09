@@ -1,12 +1,69 @@
 {% extends "tracker/base.html" %}
 {% block title %}Add/Edit Expense{% endblock %}
 
+{% block extra_css %}
+<!-- Optional: Select2 for better tag selector styling -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
 {% block content %}
-<h2>{% if object %}Edit{% else %}Add{% endif %} Expense</h2>
-<form method="post" class="mt-3">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success">Save</button>
-    <a href="{% url 'expense-list' %}" class="btn btn-secondary">Cancel</a>
-</form>
+<div class="container py-4">
+    <h2 class="mb-4">{% if object %}Edit{% else %}Add{% endif %} Expense</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">Category</label>
+            {{ form.category }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Amount</label>
+            {{ form.amount }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Date</label>
+            {{ form.date }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            {{ form.description }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Tags</label>
+            {{ form.tags }}
+        </div>
+
+        <button type="submit" class="btn btn-success">Save</button>
+        <a href="{% url 'expense-list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Optional: Select2 script -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const select = document.querySelector('select[multiple]');
+        if (select) {
+            select.classList.add('form-select');
+            $(select).select2({
+                placeholder: "Choose tags",
+                width: '100%'
+            });
+        }
+
+        // Add Bootstrap form-control to inputs
+        document.querySelectorAll('input, textarea, select').forEach(el => {
+            if (!el.classList.contains('form-control') && !el.classList.contains('form-select')) {
+                el.classList.add(el.tagName === 'SELECT' ? 'form-select' : 'form-control');
+            }
+        });
+    });
+</script>
 {% endblock %}

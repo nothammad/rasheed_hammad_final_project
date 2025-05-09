@@ -1,0 +1,27 @@
+{% extends "tracker/base.html" %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>👤 Your Profile</h2>
+        <a href="{% url 'profile-update' %}" class="btn btn-primary">Edit Profile</a>
+    </div>
+
+    {% if profile %}
+        {% for p in profile %}
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">User: {{ p.user.username }}</h5>
+                <p class="card-text">
+                    <strong>Timezone:</strong> {{ p.timezone }}<br>
+                </p>
+                <a href="{% url 'profile-delete' %}" class="btn btn-outline-danger">Delete Profile</a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-warning mt-3">No profile information available.</div>
+    {% endif %}
+</div>
+{% endblock %}

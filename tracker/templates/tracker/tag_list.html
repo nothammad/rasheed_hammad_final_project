@@ -1,0 +1,35 @@
+{% extends "tracker/base.html" %}
+{% block title %}Tags{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>🏷️ Your Tags</h2>
+        <a href="{% url 'tag-create' %}" class="btn btn-success">Add New Tag</a>
+    </div>
+
+    {% if tags %}
+        <table class="table table-bordered table-hover shadow-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th style="width: 180px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tag in tags %}
+                <tr>
+                    <td>{{ tag.name }}</td>
+                    <td>
+                        <a href="{% url 'tag-update' tag.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{% url 'tag-delete' tag.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info mt-3">You haven’t added any tags yet.</div>
+    {% endif %}
+</div>
+{% endblock %}

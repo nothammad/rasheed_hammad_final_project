@@ -1,0 +1,15 @@
+{% extends "tracker/base.html" %}
+{% block title %}Delete Goal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2>Delete Savings Goal</h2>
+    <p>Are you sure you want to delete the goal <strong>{{ object.name }}</strong> with a target of <strong>${{ object.target_amount }}</strong>?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="{% url 'goal-list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

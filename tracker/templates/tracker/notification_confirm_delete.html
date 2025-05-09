@@ -1,0 +1,16 @@
+{% extends "tracker/base.html" %}
+{% block title %}Delete Notification{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2>Delete Notification</h2>
+    <p>Are you sure you want to dismiss this notification?</p>
+    <p><strong>{{ object.message }}</strong></p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Dismiss</button>
+        <a href="{% url 'notification-list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
